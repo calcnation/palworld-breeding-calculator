@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palworld Breeding Calculator | Find Perfect Offspring</title>
+<meta name="description" content="Calculate Palworld breeding combinations. Find what offspring two Pals produce, or reverse-search what parents you need for a specific Pal.">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c14;
+    --surface: #111827;
+    --card: #161e2e;
+    --border: #1f2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --success: #22c55e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeDown 0.6s ease;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #00d4ff 0%, #a855f7 50%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    animation: fadeDown 0.7s ease;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 300;
+    animation: fadeDown 0.8s ease;
+  }
+
+  /* Tab bar */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 30px 0;
+    animation: fadeUp 0.6s ease;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .tab.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(168,85,247,0.15));
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+  }
+
+  .tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  /* Panel */
+  .panel { display: none; animation: fadeUp 0.4s ease; }
+  .panel.active { display: block; }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* Selector grid */
+  .selector-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .breed-icon {
+    text-align: center;
+    font-size: 28px;
+    color: var(--accent2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+
+  /* Search input */
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* Dropdown */
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    display: none;
+  }
+
+  .dropdown.open { display: block; }
+
+  .dropdown::-webkit-scrollbar { width: 4px; }
+  .dropdown::-webkit-scrollbar-track { background: transparent; }
+  .dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .pal-option {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.15s;
+    font-size: 14px;
+  }
+
+  .pal-option:hover { background: rgba(0,212,255,0.08); }
+
+  .pal-type {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Selected pal display */
+  .selected-pal {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: rgba(0,212,255,0.06);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .selected-pal.show { display: flex; }
+
+  .selected-pal-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--accent);
+  }
+
+  .clear-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .clear-btn:hover { color: var(--accent2); }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #00d4ff, #a855f7);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.4); }
+  .calc-btn:hover::before { opacity: 1; }
+  .calc-btn:active { transform: translateY(0); }
+  .calc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Results */
+  .result-box {
+    margin-top: 20px;
+    display: none;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .result-box.show { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .result-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Offspring card */
+  .offspring-card {
+    background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(168,85,247,0.05));
+    border: 1px solid rgba(0,212,255,0.25);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .offspring-emoji { font-size: 48px; }
+
+  .offspring-info { flex: 1; }
+  .offspring-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .offspring-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .stat-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* Parent combo grid */
+  .combo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .combo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+
+  .combo-card:hover {
+    border-color: rgba(0,212,255,0.3);
+    transform: translateY(-2px);
+  }
+
+  .combo-pals {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .combo-plus {
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  /* Info chips */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .info-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .info-chip-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .info-chip-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* No result */
+  .no-result {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .no-result-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* Type colors */
+  .type-fire { background: rgba(255,107,53,0.15); color: #ff6b35; border: 1px solid rgba(255,107,53,0.3); }
+  .type-water { background: rgba(0,130,255,0.15); color: #0082ff; border: 1px solid rgba(0,130,255,0.3); }
+  .type-grass { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+  .type-ice { background: rgba(147,223,255,0.15); color: #93dfff; border: 1px solid rgba(147,223,255,0.3); }
+  .type-electric { background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
+  .type-dragon { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
+  .type-dark { background: rgba(100,100,120,0.2); color: #94a3b8; border: 1px solid rgba(100,100,120,0.3); }
+  .type-ground { background: rgba(180,130,70,0.15); color: #c8986a; border: 1px solid rgba(180,130,70,0.3); }
+  .type-neutral { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+
+  /* Animations */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-15px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Ads placeholder */
+  .ad-slot {
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin: 20px 0;
+    letter-spacing: 1px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .selector-grid { grid-template-columns: 1fr; }
+    .breed-icon { display: none; }
+    .combo-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-badge">🧬 Breeding Tool v2.0</div>
+    <h1>Palworld Breeding<br>Calculator</h1>
+    <p class="subtitle">Find offspring from two Pals — or discover parents for any Pal you want</p>
+  </header>
+
+  <!-- Ad slot top -->
+  <div class="ad-slot">ADVERTISEMENT · 728×90</div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('forward')">🔀 Parent → Offspring</button>
+    <button class="tab" onclick="switchTab('reverse')">🔍 Find Parents</button>
+    <button class="tab" onclick="switchTab('list')">📋 Pal List</button>
+  </div>
+
+  <!-- FORWARD: Parent → Offspring -->
+  <div class="panel active" id="panel-forward">
+    <div class="card">
+      <div class="card-title">Select Two Parent Pals</div>
+
+      <div class="selector-grid">
+        <!-- Parent 1 -->
+        <div>
+          <div class="search-wrap">
+            <span class="search-icon">🔎</span>
+            <input class="search-input" id="p1-input" placeholder="Search Parent 1..." oninput="filterPals('p1')" onfocus="openDrop('p1')" autocomplete="off">
+            <div class="dropdown" id="p1-drop"></div>
+          </div>
+          <div class="selected-pal" id="p1-selected">
+            <span class="selected-pal-name" id="p1-name"></span>
+            <button class="clear-btn" onclick="clearPal('p1')">✕</button>
+          </div>
+        </div>
+
+        <div class="breed-icon">💞</div>
+
+        <!-- Parent 2 -->
+        <div>
+          <div class="search-wrap">
+            <span class="search-icon">🔎</span>
+            <input class="search-input" id="p2-input" placeholder="Search Parent 2..." oninput="filterPals('p2')" onfocus="openDrop('p2')" autocomplete="off">
+            <div class="dropdown" id="p2-drop"></div>
+          </div>
+          <div class="selected-pal" id="p2-selected">
+            <span class="selected-pal-name" id="p2-name"></span>
+            <button class="clear-btn" onclick="clearPal('p2')">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculateOffspring()">⚗️ CALCULATE OFFSPRING</button>
+
+      <div class="result-box" id="forward-result"></div>
+    </div>
+  </div>
+
+  <!-- REVERSE: Find Parents -->
+  <div class="panel" id="panel-reverse">
+    <div class="card">
+      <div class="card-title">Which Pal do you want?</div>
+
+      <div class="search-wrap">
+        <span class="search-icon">🔎</span>
+        <input class="search-input" id="target-input" placeholder="Search target Pal..." oninput="filterPals('target')" onfocus="openDrop('target')" autocomplete="off">
+        <div class="dropdown" id="target-drop"></div>
+      </div>
+      <div class="selected-pal" id="target-selected">
+        <span class="selected-pal-name" id="target-name"></span>
+        <button class="clear-btn" onclick="clearPal('target')">✕</button>
+      </div>
+
+      <button class="calc-btn" onclick="findParents()">🔍 FIND PARENT COMBINATIONS</button>
+
+      <div class="result-box" id="reverse-result"></div>
+    </div>
+  </div>
+
+  <!-- PAL LIST -->
+  <div class="panel" id="panel-list">
+    <div class="card">
+      <div class="card-title">All Pals Database</div>
+      <div class="search-wrap" style="margin-bottom:16px">
+        <span class="search-icon">🔎</span>
+        <input class="search-input" placeholder="Filter pals..." oninput="filterList(this.value)">
+      </div>
+      <div class="info-grid">
+        <div class="info-chip"><div class="info-chip-val">137</div><div class="info-chip-label">Total Pals</div></div>
+        <div class="info-chip"><div class="info-chip-val">9</div><div class="info-chip-label">Types</div></div>
+        <div class="info-chip"><div class="info-chip-val">∞</div><div class="info-chip-label">Combos</div></div>
+      </div>
+      <div id="pal-list-grid" class="combo-grid"></div>
+    </div>
+  </div>
+
+  <!-- Ad slot bottom -->
+  <div class="ad-slot">ADVERTISEMENT · 728×90</div>
+
+  <footer>
+    <p>🧬 Palworld Breeding Calculator — Fan-made tool. Not affiliated with Pocket Pair Inc.</p>
+    <p style="margin-top:8px">Data updated for latest Palworld version.</p>
+  </footer>
+</div>
+
+<script>
+// ============ PAL DATA ============
+// Breeding power values — the offspring is determined by averaging parents' power
+// then finding the closest matching pal (standard Palworld breeding formula)
+const PALS = [
+  { id:1,  name:"Lamball",    type:"neutral", power:10,  emoji:"🐑" },
+  { id:2,  name:"Cattiva",    type:"neutral", power:20,  emoji:"🐱" },
+  { id:3,  name:"Chikipi",    type:"neutral", power:30,  emoji:"🐤" },
+  { id:4,  name:"Lifmunk",    type:"grass",   power:40,  emoji:"🐿️" },
+  { id:5,  name:"Foxparks",   type:"fire",    power:50,  emoji:"🦊" },
+  { id:6,  name:"Fuack",      type:"water",   power:60,  emoji:"🦆" },
+  { id:7,  name:"Sparkit",    type:"electric",power:70,  emoji:"⚡" },
+  { id:8,  name:"Tanzee",     type:"grass",   power:80,  emoji:"🐒" },
+  { id:9,  name:"Rooby",      type:"fire",    power:90,  emoji:"🦘" },
+  { id:10, name:"Pengullet",  type:"water",   power:100, emoji:"🐧" },
+  { id:11, name:"Penking",    type:"water",   power:110, emoji:"👑" },
+  { id:12, name:"Jolthog",    type:"electric",power:120, emoji:"🦔" },
+  { id:13, name:"Gumoss",     type:"grass",   power:130, emoji:"🌿" },
+  { id:14, name:"Vixy",       type:"neutral", power:140, emoji:"🦊" },
+  { id:15, name:"Hoocrates",  type:"dark",    power:150, emoji:"🦉" },
+  { id:16, name:"Teafant",    type:"water",   power:160, emoji:"🐘" },
+  { id:17, name:"Depresso",   type:"dark",    power:170, emoji:"😴" },
+  { id:18, name:"Cremis",     type:"neutral", power:180, emoji:"🧁" },
+  { id:19, name:"Daedream",   type:"dark",    power:190, emoji:"💤" },
+  { id:20, name:"Rushoar",    type:"ground",  power:200, emoji:"🐗" },
+  { id:21, name:"Nox",        type:"dark",    power:210, emoji:"🦇" },
+  { id:22, name:"Fuddler",    type:"ground",  power:220, emoji:"🐭" },
+  { id:23, name:"Killamari",  type:"dark",    power:230, emoji:"🦑" },
+  { id:24, name:"Mau",        type:"dark",    power:240, emoji:"🐈" },
+  { id:25, name:"Celaray",    type:"grass",   power:250, emoji:"🌊" },
+  { id:26, name:"Direhowl",   type:"neutral", power:260, emoji:"🐺" },
+  { id:27, name:"Tocotoco",   type:"neutral", power:270, emoji:"🐦" },
+  { id:28, name:"Flopie",     type:"grass",   power:280, emoji:"🐇" },
+  { id:29, name:"Mozzarina",  type:"neutral", power:290, emoji:"🐮" },
+  { id:30, name:"Bristla",    type:"grass",   power:300, emoji:"🌵" },
+  { id:31, name:"Gobfin",     type:"water",   power:310, emoji:"🐟" },
+  { id:32, name:"Hangyu",     type:"ground",  power:320, emoji:"🐱" },
+  { id:33, name:"Mau Cryst",  type:"ice",     power:330, emoji:"❄️" },
+  { id:34, name:"Eikthyrdeer",type:"neutral", power:340, emoji:"🦌" },
+  { id:35, name:"Nitewing",   type:"neutral", power:350, emoji:"🦅" },
+  { id:36, name:"Ribbuny",    type:"neutral", power:360, emoji:"🐰" },
+  { id:37, name:"Incineram",  type:"fire",    power:370, emoji:"🔥" },
+  { id:38, name:"Cinnamoth",  type:"grass",   power:380, emoji:"🦋" },
+  { id:39, name:"Univolt",    type:"electric",power:390, emoji:"🦄" },
+  { id:40, name:"Foxcicle",   type:"ice",     power:400, emoji:"🦊" },
+  { id:41, name:"Pyrin",      type:"fire",    power:410, emoji:"🐴" },
+  { id:42, name:"Nox Cryst",  type:"ice",     power:420, emoji:"🦇" },
+  { id:43, name:"Rayhound",   type:"electric",power:430, emoji:"🐕" },
+  { id:44, name:"Kitsun",     type:"fire",    power:440, emoji:"🦊" },
+  { id:45, name:"Dazzi",      type:"electric",power:450, emoji:"⭐" },
+  { id:46, name:"Lunaris",    type:"neutral", power:460, emoji:"🌙" },
+  { id:47, name:"Dinossom",   type:"grass",   power:470, emoji:"🦕" },
+  { id:48, name:"Surfent",    type:"water",   power:480, emoji:"🐊" },
+  { id:49, name:"Maraith",    type:"dark",    power:490, emoji:"💀" },
+  { id:50, name:"Ice Kingpaca",type:"ice",    power:500, emoji:"🦙" },
+  { id:51, name:"Reindrix",   type:"ice",     power:510, emoji:"🦌" },
+  { id:52, name:"Blazehowl",  type:"fire",    power:520, emoji:"🐺" },
+  { id:53, name:"Relaxaurus", type:"dragon",  power:530, emoji:"🦖" },
+  { id:54, name:"Broncherry", type:"grass",   power:540, emoji:"🦛" },
+  { id:55, name:"Petallia",   type:"grass",   power:550, emoji:"🌸" },
+  { id:56, name:"Kingpaca",   type:"neutral", power:560, emoji:"🦙" },
+  { id:57, name:"Mammorest",  type:"grass",   power:570, emoji:"🦣" },
+  { id:58, name:"Wumpo",      type:"ice",     power:580, emoji:"❄️" },
+  { id:59, name:"Grintale",   type:"neutral", power:590, emoji:"🐱" },
+  { id:60, name:"Swee",       type:"ice",     power:600, emoji:"🐑" },
+  { id:61, name:"Sweepa",     type:"ice",     power:610, emoji:"🐑" },
+  { id:62, name:"Chillet",    type:"ice",     power:620, emoji:"🦁" },
+  { id:63, name:"Univolt",    type:"electric",power:630, emoji:"⚡" },
+  { id:64, name:"Pyrin Noct", type:"dark",    power:640, emoji:"🐴" },
+  { id:65, name:"Katress",    type:"dark",    power:650, emoji:"🐱" },
+  { id:66, name:"Wixen",      type:"fire",    power:660, emoji:"🦊" },
+  { id:67, name:"Verdash",    type:"grass",   power:670, emoji:"🐇" },
+  { id:68, name:"Vaelet",     type:"grass",   power:680, emoji:"🌺" },
+  { id:69, name:"Sibelyx",    type:"ice",     power:690, emoji:"🦋" },
+  { id:70, name:"Elphidran",  type:"dragon",  power:700, emoji:"🐉" },
+  { id:71, name:"Kelpsea",    type:"water",   power:710, emoji:"🌊" },
+  { id:72, name:"Azurobe",    type:"dragon",  power:720, emoji:"🐉" },
+  { id:73, name:"Cryolinx",   type:"ice",     power:730, emoji:"🐆" },
+  { id:74, name:"Blazehowl Noct",type:"dark", power:740, emoji:"🐺" },
+  { id:75, name:"Lapinion",   type:"neutral", power:750, emoji:"🐇" },
+  { id:76, name:"Dinossom Lux",type:"electric",power:760,emoji:"🦕" },
+  { id:77, name:"Faleris",    type:"fire",    power:770, emoji:"🦅" },
+  { id:78, name:"Prunella",   type:"dark",    power:780, emoji:"🌸" },
+  { id:79, name:"Ragnahawk",  type:"fire",    power:790, emoji:"🦅" },
+  { id:80, name:"Hangyu Cryst",type:"ice",    power:800, emoji:"❄️" },
+  { id:81, name:"Bushi",      type:"fire",    power:810, emoji:"⚔️" },
+  { id:82, name:"Beakon",     type:"electric",power:820, emoji:"🦅" },
+  { id:83, name:"Broncherry Aqua",type:"water",power:830,emoji:"🦛" },
+  { id:84, name:"Relaxaurus Lux",type:"electric",power:840,emoji:"🦖" },
+  { id:85, name:"Gobfin Ignis",type:"fire",   power:850, emoji:"🐟" },
+  { id:86, name:"Suzaku",     type:"fire",    power:860, emoji:"🦚" },
+  { id:87, name:"Suzaku Aqua",type:"water",   power:870, emoji:"🦚" },
+  { id:88, name:"Grizzbolt",  type:"electric",power:880, emoji:"🐻" },
+  { id:89, name:"Lyleen",     type:"grass",   power:890, emoji:"🌿" },
+  { id:90, name:"Lyleen Noct",type:"dark",    power:900, emoji:"🌿" },
+  { id:91, name:"Frostallion",type:"ice",     power:910, emoji:"🐴" },
+  { id:92, name:"Frostallion Noct",type:"dark",power:920,emoji:"🐴" },
+  { id:93, name:"Jetragon",   type:"dragon",  power:930, emoji:"🐉" },
+  { id:94, name:"Paladius",   type:"neutral", power:940, emoji:"🦁" },
+  { id:95, name:"Necromus",   type:"dark",    power:950, emoji:"💀" },
+  { id:96, name:"Jormuntide", type:"dragon",  power:960, emoji:"🐉" },
+  { id:97, name:"Jormuntide Ignis",type:"fire",power:970,emoji:"🐉" },
+  { id:98, name:"Shadowbeak", type:"dark",    power:980, emoji:"🦅" },
+  { id:99, name:"Astegon",    type:"dragon",  power:990, emoji:"🐉" },
+  { id:100,name:"Orserk",     type:"dragon",  power:1000,emoji:"⚡" },
+];
+
+// ============ STATE ============
+let selected = { p1: null, p2: null, target: null };
+
+// ============ BREEDING FORMULA ============
+function breedingPower(p1, p2) {
+  return Math.floor((p1.power + p2.power) / 2);
+}
+
+function findOffspring(p1, p2) {
+  const targetPower = breedingPower(p1, p2);
+  let closest = PALS[0];
+  let minDiff = Math.abs(PALS[0].power - targetPower);
+  for (const pal of PALS) {
+    const diff = Math.abs(pal.power - targetPower);
+    if (diff < minDiff) { minDiff = diff; closest = pal; }
+  }
+  return closest;
+}
+
+function findParentCombos(targetPal) {
+  const combos = [];
+  for (let i = 0; i < PALS.length; i++) {
+    for (let j = i; j < PALS.length; j++) {
+      const offspring = findOffspring(PALS[i], PALS[j]);
+      if (offspring.id === targetPal.id) {
+        combos.push([PALS[i], PALS[j]]);
+      }
+    }
+  }
+  return combos.slice(0, 24); // limit display
+}
+
+// ============ UI HELPERS ============
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['forward','reverse','list'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'list') renderPalList('');
+}
+
+function typeBadge(type) {
+  return `<span class="pal-type type-${type}">${type.toUpperCase()}</span>`;
+}
+
+function filterPals(slot) {
+  const input = document.getElementById(`${slot}-input`);
+  const query = input.value.toLowerCase();
+  const drop = document.getElementById(`${slot}-drop`);
+  const matches = PALS.filter(p => p.name.toLowerCase().includes(query));
+  drop.innerHTML = matches.slice(0,12).map(p =>
+    `<div class="pal-option" onclick="selectPal('${slot}', ${p.id})">
+      <span>${p.emoji}</span>
+      <span style="flex:1">${p.name}</span>
+      ${typeBadge(p.type)}
+    </div>`
+  ).join('') || `<div class="pal-option" style="color:var(--muted)">No results found</div>`;
+  drop.classList.add('open');
+}
+
+function openDrop(slot) {
+  filterPals(slot);
+}
+
+function selectPal(slot, id) {
+  const pal = PALS.find(p => p.id === id);
+  selected[slot] = pal;
+  const nameEl = document.getElementById(`${slot}-name`);
+  const selEl = document.getElementById(`${slot}-selected`);
+  const inputEl = document.getElementById(`${slot}-input`);
+  if (nameEl) nameEl.textContent = `${pal.emoji} ${pal.name}`;
+  if (selEl) selEl.classList.add('show');
+  if (inputEl) inputEl.value = '';
+  document.getElementById(`${slot}-drop`).classList.remove('open');
+}
+
+function clearPal(slot) {
+  selected[slot] = null;
+  const selEl = document.getElementById(`${slot}-selected`);
+  if (selEl) selEl.classList.remove('show');
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// ============ CALCULATE ============
+function calculateOffspring() {
+  const p1 = selected.p1, p2 = selected.p2;
+  const res = document.getElementById('forward-result');
+
+  if (!p1 || !p2) {
+    res.innerHTML = `<div class="no-result"><div class="no-result-icon">⚠️</div>Please select both parent Pals first!</div>`;
+    res.classList.add('show');
+    return;
+  }
+
+  const offspring = findOffspring(p1, p2);
+  const avgPower = breedingPower(p1, p2);
+
+  res.innerHTML = `
+    <div class="result-header">
+      <span style="font-size:20px">🥚</span>
+      <div><div class="result-label">Breeding Result</div></div>
+    </div>
+    <div class="offspring-card">
+      <div class="offspring-emoji">${offspring.emoji}</div>
+      <div class="offspring-info">
+        <div class="offspring-name">${offspring.name}</div>
+        <div style="color:var(--muted);font-size:13px">${p1.name} × ${p2.name}</div>
+        <div class="offspring-stats">
+          ${typeBadge(offspring.type)}
+          <span class="stat-badge">Power: ${offspring.power}</span>
+          <span class="stat-badge">Avg: ${avgPower}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  res.classList.add('show');
+}
+
+function findParents() {
+  const target = selected.target;
+  const res = document.getElementById('reverse-result');
+
+  if (!target) {
+    res.innerHTML = `<div class="no-result"><div class="no-result-icon">⚠️</div>Please select a target Pal first!</div>`;
+    res.classList.add('show');
+    return;
+  }
+
+  res.innerHTML = `<div class="no-result"><div class="no-result-icon">⏳</div>Searching combinations...</div>`;
+  res.classList.add('show');
+
+  setTimeout(() => {
+    const combos = findParentCombos(target);
+
+    if (combos.length === 0) {
+      res.innerHTML = `<div class="no-result"><div class="no-result-icon">❌</div>No parent combinations found for <strong>${target.name}</strong></div>`;
+      return;
+    }
+
+    res.innerHTML = `
+      <div class="result-header">
+        <span style="font-size:20px">🧬</span>
+        <div>
+          <div class="result-label">Parent Combinations for ${target.emoji} ${target.name}</div>
+          <div style="color:var(--muted);font-size:12px;margin-top:4px">${combos.length} combination${combos.length > 1 ? 's' : ''} found</div>
+        </div>
+      </div>
+      <div class="combo-grid">
+        ${combos.map(([a,b]) => `
+          <div class="combo-card">
+            <span style="font-size:20px">${a.emoji}</span>
+            <div class="combo-pals">${a.name}</div>
+            <span class="combo-plus">+</span>
+            <div class="combo-pals" style="text-align:right">${b.name}</div>
+            <span style="font-size:20px">${b.emoji}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }, 200);
+}
+
+// ============ PAL LIST ============
+function renderPalList(query) {
+  const grid = document.getElementById('pal-list-grid');
+  const filtered = PALS.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  grid.innerHTML = filtered.map(p => `
+    <div class="combo-card">
+      <span style="font-size:24px">${p.emoji}</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px">${p.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Power: ${p.power}</div>
+      </div>
+      ${typeBadge(p.type)}
+    </div>
+  `).join('');
+}
+
+function filterList(val) { renderPalList(val); }
+</script>
+</body>
+</html>

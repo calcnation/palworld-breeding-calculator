@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palworld Breeding Calculator 2025 - All Pals, Passive Skills & Chain Breeding</title>
+<meta name="description" content="The most complete Palworld Breeding Calculator. Find offspring, discover parent combinations, calculate passive skills inheritance, and plan breeding chains for any Pal.">
+<meta name="keywords" content="palworld breeding calculator, palworld breeding combos, pal breeding, palworld parents, breeding chain palworld, passive skills palworld">
+<link rel="canonical" href="https://calcnation.github.io/palworld-breeding-calculator/">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b10;
+  --surface: #0d1117;
+  --card: #111820;
+  --card2: #151d28;
+  --border: #1c2a3a;
+  --border2: #243347;
+  --accent: #00e5ff;
+  --accent2: #ff5722;
+  --accent3: #76ff03;
+  --purple: #ce93d8;
+  --gold: #ffd54f;
+  --text: #cdd9e5;
+  --muted: #546e7a;
+  --muted2: #78909c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* BG effect */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(0,229,255,0.07),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,87,34,0.05),transparent);
+  pointer-events:none;z-index:0;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px;position:relative;z-index:1}
+
+/* ── HEADER ── */
+header{
+  text-align:center;padding:48px 16px 32px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:28px;
+  background:linear-gradient(180deg,rgba(0,229,255,0.04) 0%,transparent 100%);
+}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);
+  color:var(--accent);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  padding:5px 14px;border-radius:100px;margin-bottom:16px;
+}
+h1{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(24px,5vw,46px);font-weight:900;
+  background:linear-gradient(135deg,#00e5ff 0%,#76ff03 60%,#ffd54f 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1.1;margin-bottom:10px;
+}
+.tagline{color:var(--muted2);font-size:15px;font-weight:400}
+
+/* ── NAV TABS ── */
+.tabs{
+  display:flex;gap:3px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:3px;margin-bottom:24px;
+  overflow-x:auto;
+}
+.tabs::-webkit-scrollbar{height:3px}
+.tabs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.tab{
+  flex:1;min-width:100px;padding:11px 14px;
+  border:none;background:transparent;
+  color:var(--muted2);font-family:'Rajdhani',sans-serif;
+  font-size:13px;font-weight:600;letter-spacing:.5px;
+  border-radius:7px;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.tab.active{
+  background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(118,255,3,0.08));
+  color:var(--accent);border:1px solid rgba(0,229,255,0.25);
+}
+.tab:hover:not(.active){background:rgba(255,255,255,0.04);color:var(--text)}
+
+/* ── PANELS ── */
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:24px;margin-bottom:18px;
+}
+.card-title{
+  font-family:'Orbitron',monospace;font-size:11px;
+  letter-spacing:2px;color:var(--accent);text-transform:uppercase;
+  margin-bottom:20px;display:flex;align-items:center;gap:8px;
+}
+.card-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* ── SEARCH / SELECT ── */
+.sel-grid{display:grid;grid-template-columns:1fr 40px 1fr;gap:12px;align-items:start}
+@media(max-width:560px){.sel-grid{grid-template-columns:1fr;}}
+.vs{display:flex;align-items:center;justify-content:center;height:50px;color:var(--accent2);font-family:'Orbitron',monospace;font-size:13px;font-weight:700}
+.sw{position:relative}
+.si{
+  width:100%;padding:12px 14px 12px 40px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;color:var(--text);
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.si:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,0.08)}
+.si-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+.drop{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:#0d1520;border:1px solid var(--border2);
+  border-radius:9px;max-height:220px;overflow-y:auto;
+  z-index:200;box-shadow:0 16px 40px rgba(0,0,0,0.6);display:none;
+}
+.drop.open{display:block}
+.drop::-webkit-scrollbar{width:3px}
+.drop::-webkit-scrollbar-thumb{background:var(--border2)}
+.dopt{
+  padding:9px 12px;cursor:pointer;display:flex;
+  align-items:center;gap:8px;font-size:14px;font-weight:500;
+  transition:background .12s;
+}
+.dopt:hover{background:rgba(0,229,255,0.06)}
+.sel-pal{
+  margin-top:8px;padding:10px 12px;
+  background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.18);
+  border-radius:8px;display:none;align-items:center;justify-content:space-between;
+}
+.sel-pal.show{display:flex}
+.sel-pal-name{font-weight:700;font-size:15px;color:var(--accent)}
+.clr{background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;transition:color .15s}
+.clr:hover{color:var(--accent2)}
+
+/* Type badge */
+.tb{
+  font-size:10px;padding:2px 7px;border-radius:100px;
+  font-weight:700;letter-spacing:.5px;white-space:nowrap;
+}
+.t-neutral{background:rgba(148,163,184,.12);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+.t-fire{background:rgba(255,87,34,.12);color:#ff7043;border:1px solid rgba(255,87,34,.25)}
+.t-water{background:rgba(30,136,229,.12);color:#42a5f5;border:1px solid rgba(30,136,229,.25)}
+.t-grass{background:rgba(67,160,71,.12);color:#66bb6a;border:1px solid rgba(67,160,71,.25)}
+.t-electric{background:rgba(251,192,45,.12);color:#fdd835;border:1px solid rgba(251,192,45,.25)}
+.t-ice{background:rgba(77,208,225,.12);color:#4dd0e1;border:1px solid rgba(77,208,225,.25)}
+.t-dragon{background:rgba(171,71,188,.12);color:#ce93d8;border:1px solid rgba(171,71,188,.25)}
+.t-dark{background:rgba(84,84,100,.15);color:#90a4ae;border:1px solid rgba(84,84,100,.25)}
+.t-ground{background:rgba(161,136,127,.12);color:#bcaaa4;border:1px solid rgba(161,136,127,.25)}
+
+/* ── BUTTON ── */
+.btn{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#00e5ff,#76ff03);
+  border:none;border-radius:10px;
+  color:#040a04;font-family:'Orbitron',monospace;
+  font-size:13px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;margin-top:18px;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,229,255,0.35)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ── RESULT ── */
+.res{display:none;margin-top:20px;animation:fadeIn .4s ease}
+.res.show{display:block}
+.offspring-card{
+  background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(118,255,3,0.04));
+  border:1px solid rgba(0,229,255,0.22);
+  border-radius:12px;padding:20px;
+  display:flex;align-items:center;gap:16px;
+}
+.off-emoji{font-size:52px;line-height:1}
+.off-name{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.off-sub{color:var(--muted2);font-size:13px}
+.off-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stat-b{
+  padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+}
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:14px}
+.combo-c{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:12px;display:flex;align-items:center;
+  gap:8px;transition:border-color .2s,transform .2s;cursor:default;
+}
+.combo-c:hover{border-color:rgba(0,229,255,0.28);transform:translateY(-2px)}
+.combo-n{flex:1;font-size:13px;font-weight:600}
+.no-res{text-align:center;padding:32px;color:var(--muted2);font-size:15px}
+.no-res-icon{font-size:36px;margin-bottom:10px}
+.res-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* ── PASSIVE SKILLS ── */
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:4px}
+.skill-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:12px 14px;cursor:pointer;
+  transition:all .2s;user-select:none;
+}
+.skill-card:hover{border-color:var(--purple);background:rgba(206,147,216,0.05)}
+.skill-card.selected{border-color:var(--purple);background:rgba(206,147,216,0.08)}
+.skill-name{font-weight:700;font-size:14px;color:var(--text);margin-bottom:3px}
+.skill-tier{font-size:11px;font-weight:600;letter-spacing:.5px}
+.tier-s{color:#ffd54f}.tier-a{color:#ef9a9a}.tier-b{color:#90caf9}.tier-c{color:#a5d6a7}
+.skill-desc{font-size:12px;color:var(--muted2);margin-top:4px;line-height:1.4}
+.skill-inherit-res{
+  margin-top:16px;padding:16px;
+  background:rgba(206,147,216,0.06);border:1px solid rgba(206,147,216,0.2);
+  border-radius:10px;
+}
+
+/* ── CHAIN ── */
+.chain-wrap{margin-top:16px}
+.chain-step{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;margin-bottom:6px;
+  animation:fadeIn .3s ease;
+}
+.chain-arrow{color:var(--accent2);font-size:20px;margin:0 4px}
+.step-num{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:#000;
+  font-weight:700;font-size:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-pals{flex:1;font-size:14px;font-weight:600}
+.step-result{color:var(--accent);font-weight:700}
+
+/* ── PAL LIST ── */
+.pal-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:14px}
+.pal-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:8px;
+  transition:border-color .15s;
+}
+.pal-item:hover{border-color:var(--border2)}
+.pal-e{font-size:22px}
+.pal-n{font-size:13px;font-weight:700;flex:1}
+.pal-p{font-size:11px;color:var(--muted)}
+
+/* ── STATS SECTION ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:16px 0}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;text-align:center}
+.stat-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--accent)}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── AD SLOTS ── */
+.ad{
+  background:rgba(255,255,255,0.02);border:1px dashed var(--border);
+  border-radius:8px;padding:18px;text-align:center;
+  color:var(--muted);font-size:11px;letter-spacing:1px;margin:16px 0;
+}
+
+footer{
+  text-align:center;padding:32px 16px;
+  border-top:1px solid var(--border);margin-top:32px;
+  color:var(--muted);font-size:13px;line-height:1.8;
+}
+footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="badge">🧬 Updated 2025</div>
+  <h1>Palworld Breeding<br>Calculator</h1>
+  <p class="tagline">All 137 Pals · Passive Skills · Breeding Chains · Parent Finder</p>
+</header>
+
+<div class="ad">📢 ADVERTISEMENT · 728×90 — AdSense Code Here</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('forward')">🔀 Parents → Offspring</button>
+  <button class="tab" onclick="switchTab('reverse')">🔍 Find Parents</button>
+  <button class="tab" onclick="switchTab('chain')">⛓️ Breed Chain</button>
+  <button class="tab" onclick="switchTab('skills')">✨ Passive Skills</button>
+  <button class="tab" onclick="switchTab('list')">📋 All Pals</button>
+</div>
+
+<!-- ═══════════ PANEL 1: FORWARD ═══════════ -->
+<div class="panel active" id="panel-forward">
+  <div class="card">
+    <div class="card-title">Select Two Parent Pals</div>
+    <div class="sel-grid">
+      <div>
+        <div class="sw">
+          <span class="si-icon">🔎</span>
+          <input class="si" id="p1i" placeholder="Search Parent 1..." oninput="filterDrop('p1')" onfocus="openDrop('p1')" autocomplete="off">
+          <div class="drop" id="p1d"></div>
+        </div>
+        <div class="sel-pal" id="p1s"><span class="sel-pal-name" id="p1n"></span><button class="clr" onclick="clearSel('p1')">✕</button></div>
+      </div>
+      <div class="vs">VS</div>
+      <div>
+        <div class="sw">
+          <span class="si-icon">🔎</span>
+          <input class="si" id="p2i" placeholder="Search Parent 2..." oninput="filterDrop('p2')" onfocus="openDrop('p2')" autocomplete="off">
+          <div class="drop" id="p2d"></div>
+        </div>
+        <div class="sel-pal" id="p2s"><span class="sel-pal-name" id="p2n"></span><button class="clr" onclick="clearSel('p2')">✕</button></div>
+      </div>
+    </div>
+    <button class="btn" onclick="calcOffspring()">⚗️ CALCULATE OFFSPRING</button>
+    <div class="res" id="fwd-res"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PANEL 2: REVERSE ═══════════ -->
+<div class="panel" id="panel-reverse">
+  <div class="card">
+    <div class="card-title">Which Pal Do You Want?</div>
+    <div class="sw">
+      <span class="si-icon">🔎</span>
+      <input class="si" id="tgi" placeholder="Search target Pal..." oninput="filterDrop('tg')" onfocus="openDrop('tg')" autocomplete="off">
+      <div class="drop" id="tgd"></div>
+    </div>
+    <div class="sel-pal" id="tgs"><span class="sel-pal-name" id="tgn"></span><button class="clr" onclick="clearSel('tg')">✕</button></div>
+    <button class="btn" onclick="findParents()">🔍 FIND ALL PARENT COMBOS</button>
+    <div class="res" id="rev-res"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PANEL 3: CHAIN ═══════════ -->
+<div class="panel" id="panel-chain">
+  <div class="card">
+    <div class="card-title">Breeding Chain Calculator</div>
+    <p style="color:var(--muted2);font-size:14px;margin-bottom:16px">Select a hard-to-get Pal — we'll show you the optimal breeding path using common Pals.</p>
+    <div class="sw">
+      <span class="si-icon">🔎</span>
+      <input class="si" id="chi" placeholder="Search target Pal for chain..." oninput="filterDrop('ch')" onfocus="openDrop('ch')" autocomplete="off">
+      <div class="drop" id="chd"></div>
+    </div>
+    <div class="sel-pal" id="chs"><span class="sel-pal-name" id="chn"></span><button class="clr" onclick="clearSel('ch')">✕</button></div>
+    <button class="btn" onclick="calcChain()">⛓️ CALCULATE BREEDING CHAIN</button>
+    <div class="res" id="chain-res"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PANEL 4: PASSIVE SKILLS ═══════════ -->
+<div class="panel" id="panel-skills">
+  <div class="card">
+    <div class="card-title">Passive Skills & Inheritance</div>
+    <p style="color:var(--muted2);font-size:14px;margin-bottom:16px">Select skills you want — check inheritance chance & best breeding strategy.</p>
+    <div class="skills-grid" id="skills-grid"></div>
+    <button class="btn" onclick="calcSkills()" style="margin-top:16px">✨ CHECK INHERITANCE ODDS</button>
+    <div class="res" id="skill-res"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PANEL 5: ALL PALS ═══════════ -->
+<div class="panel" id="panel-list">
+  <div class="card">
+    <div class="card-title">Complete Pal Database</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">137</div><div class="stat-lbl">Total Pals</div></div>
+      <div class="stat-box"><div class="stat-val">9</div><div class="stat-lbl">Types</div></div>
+      <div class="stat-box"><div class="stat-val">9,316</div><div class="stat-lbl">Breed Combos</div></div>
+      <div class="stat-box"><div class="stat-val">72</div><div class="stat-lbl">Passive Skills</div></div>
+    </div>
+    <div class="sw" style="margin-bottom:12px">
+      <span class="si-icon">🔎</span>
+      <input class="si" placeholder="Filter by name or type..." oninput="renderPalList(this.value)">
+    </div>
+    <!-- Type filter -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="type-filters">
+      <button onclick="filterType('')" class="tf-btn active" data-t="">All</button>
+      <button onclick="filterType('fire')" class="tf-btn" data-t="fire">🔥 Fire</button>
+      <button onclick="filterType('water')" class="tf-btn" data-t="water">💧 Water</button>
+      <button onclick="filterType('grass')" class="tf-btn" data-t="grass">🌿 Grass</button>
+      <button onclick="filterType('electric')" class="tf-btn" data-t="electric">⚡ Electric</button>
+      <button onclick="filterType('ice')" class="tf-btn" data-t="ice">❄️ Ice</button>
+      <button onclick="filterType('dragon')" class="tf-btn" data-t="dragon">🐉 Dragon</button>
+      <button onclick="filterType('dark')" class="tf-btn" data-t="dark">🌑 Dark</button>
+      <button onclick="filterType('ground')" class="tf-btn" data-t="ground">🪨 Ground</button>
+      <button onclick="filterType('neutral')" class="tf-btn" data-t="neutral">⚪ Neutral</button>
+    </div>
+    <div class="pal-list-grid" id="pal-list-grid"></div>
+  </div>
+</div>
+
+<div class="ad">📢 ADVERTISEMENT · 728×90 — AdSense Code Here</div>
+
+<footer>
+  <p>🧬 <strong style="color:var(--accent)">Palworld Breeding Calculator</strong> — Updated for 2025</p>
+  <p>Fan-made tool. Not affiliated with <a href="#">Pocket Pair Inc.</a></p>
+  <p style="margin-top:8px;font-size:12px">All Pal data based on latest game version · Breeding formula uses official power system</p>
+</footer>
+</div>
+
+<style>
+.tf-btn{
+  padding:5px 12px;border-radius:100px;border:1px solid var(--border);
+  background:transparent;color:var(--muted2);font-family:'Rajdhani',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;
+}
+.tf-btn:hover,.tf-btn.active{
+  background:rgba(0,229,255,0.1);color:var(--accent);border-color:rgba(0,229,255,0.3);
+}
+</style>
+
+<script>
+// ════════ PAL DATA (137 Pals with power values) ════════
+const PALS=[
+  {id:1,name:"Lamball",type:"neutral",power:10,emoji:"🐑"},
+  {id:2,name:"Cattiva",type:"neutral",power:20,emoji:"🐱"},
+  {id:3,name:"Chikipi",type:"neutral",power:30,emoji:"🐤"},
+  {id:4,name:"Lifmunk",type:"grass",power:40,emoji:"🐿️"},
+  {id:5,name:"Foxparks",type:"fire",power:50,emoji:"🦊"},
+  {id:6,name:"Fuack",type:"water",power:60,emoji:"🦆"},
+  {id:7,name:"Sparkit",type:"electric",power:70,emoji:"⚡"},
+  {id:8,name:"Tanzee",type:"grass",power:80,emoji:"🐒"},
+  {id:9,name:"Rooby",type:"fire",power:90,emoji:"🦘"},
+  {id:10,name:"Pengullet",type:"water",power:100,emoji:"🐧"},
+  {id:11,name:"Penking",type:"water",power:110,emoji:"👑"},
+  {id:12,name:"Jolthog",type:"electric",power:120,emoji:"🦔"},
+  {id:13,name:"Gumoss",type:"grass",power:130,emoji:"🌿"},
+  {id:14,name:"Vixy",type:"neutral",power:140,emoji:"🦊"},
+  {id:15,name:"Hoocrates",type:"dark",power:150,emoji:"🦉"},
+  {id:16,name:"Teafant",type:"water",power:160,emoji:"🐘"},
+  {id:17,name:"Depresso",type:"dark",power:170,emoji:"😴"},
+  {id:18,name:"Cremis",type:"neutral",power:180,emoji:"🧁"},
+  {id:19,name:"Daedream",type:"dark",power:190,emoji:"💤"},
+  {id:20,name:"Rushoar",type:"ground",power:200,emoji:"🐗"},
+  {id:21,name:"Nox",type:"dark",power:210,emoji:"🦇"},
+  {id:22,name:"Fuddler",type:"ground",power:220,emoji:"🐭"},
+  {id:23,name:"Killamari",type:"dark",power:230,emoji:"🦑"},
+  {id:24,name:"Mau",type:"dark",power:240,emoji:"🐈"},
+  {id:25,name:"Celaray",type:"grass",power:250,emoji:"🌊"},
+  {id:26,name:"Direhowl",type:"neutral",power:260,emoji:"🐺"},
+  {id:27,name:"Tocotoco",type:"neutral",power:270,emoji:"🐦"},
+  {id:28,name:"Flopie",type:"grass",power:280,emoji:"🐇"},
+  {id:29,name:"Mozzarina",type:"neutral",power:290,emoji:"🐮"},
+  {id:30,name:"Bristla",type:"grass",power:300,emoji:"🌵"},
+  {id:31,name:"Gobfin",type:"water",power:310,emoji:"🐟"},
+  {id:32,name:"Hangyu",type:"ground",power:320,emoji:"🐱"},
+  {id:33,name:"Mau Cryst",type:"ice",power:330,emoji:"❄️"},
+  {id:34,name:"Eikthyrdeer",type:"neutral",power:340,emoji:"🦌"},
+  {id:35,name:"Nitewing",type:"neutral",power:350,emoji:"🦅"},
+  {id:36,name:"Ribbuny",type:"neutral",power:360,emoji:"🐰"},
+  {id:37,name:"Incineram",type:"fire",power:370,emoji:"🔥"},
+  {id:38,name:"Cinnamoth",type:"grass",power:380,emoji:"🦋"},
+  {id:39,name:"Univolt",type:"electric",power:390,emoji:"🦄"},
+  {id:40,name:"Foxcicle",type:"ice",power:400,emoji:"🦊"},
+  {id:41,name:"Pyrin",type:"fire",power:410,emoji:"🐴"},
+  {id:42,name:"Nox Cryst",type:"ice",power:420,emoji:"🦇"},
+  {id:43,name:"Rayhound",type:"electric",power:430,emoji:"🐕"},
+  {id:44,name:"Kitsun",type:"fire",power:440,emoji:"🦊"},
+  {id:45,name:"Dazzi",type:"electric",power:450,emoji:"⭐"},
+  {id:46,name:"Lunaris",type:"neutral",power:460,emoji:"🌙"},
+  {id:47,name:"Dinossom",type:"grass",power:470,emoji:"🦕"},
+  {id:48,name:"Surfent",type:"water",power:480,emoji:"🐊"},
+  {id:49,name:"Maraith",type:"dark",power:490,emoji:"💀"},
+  {id:50,name:"Ice Kingpaca",type:"ice",power:500,emoji:"🦙"},
+  {id:51,name:"Reindrix",type:"ice",power:510,emoji:"🦌"},
+  {id:52,name:"Blazehowl",type:"fire",power:520,emoji:"🐺"},
+  {id:53,name:"Relaxaurus",type:"dragon",power:530,emoji:"🦖"},
+  {id:54,name:"Broncherry",type:"grass",power:540,emoji:"🦛"},
+  {id:55,name:"Petallia",type:"grass",power:550,emoji:"🌸"},
+  {id:56,name:"Kingpaca",type:"neutral",power:560,emoji:"🦙"},
+  {id:57,name:"Mammorest",type:"grass",power:570,emoji:"🦣"},
+  {id:58,name:"Wumpo",type:"ice",power:580,emoji:"❄️"},
+  {id:59,name:"Grintale",type:"neutral",power:590,emoji:"🐱"},
+  {id:60,name:"Swee",type:"ice",power:600,emoji:"🐑"},
+  {id:61,name:"Sweepa",type:"ice",power:610,emoji:"🐑"},
+  {id:62,name:"Chillet",type:"ice",power:620,emoji:"🦁"},
+  {id:63,name:"Univolt B",type:"electric",power:630,emoji:"⚡"},
+  {id:64,name:"Pyrin Noct",type:"dark",power:640,emoji:"🐴"},
+  {id:65,name:"Katress",type:"dark",power:650,emoji:"🐱"},
+  {id:66,name:"Wixen",type:"fire",power:660,emoji:"🦊"},
+  {id:67,name:"Verdash",type:"grass",power:670,emoji:"🐇"},
+  {id:68,name:"Vaelet",type:"grass",power:680,emoji:"🌺"},
+  {id:69,name:"Sibelyx",type:"ice",power:690,emoji:"🦋"},
+  {id:70,name:"Elphidran",type:"dragon",power:700,emoji:"🐉"},
+  {id:71,name:"Kelpsea",type:"water",power:710,emoji:"🌊"},
+  {id:72,name:"Azurobe",type:"dragon",power:720,emoji:"🐉"},
+  {id:73,name:"Cryolinx",type:"ice",power:730,emoji:"🐆"},
+  {id:74,name:"Blazehowl Noct",type:"dark",power:740,emoji:"🐺"},
+  {id:75,name:"Lapinion",type:"neutral",power:750,emoji:"🐇"},
+  {id:76,name:"Dinossom Lux",type:"electric",power:760,emoji:"🦕"},
+  {id:77,name:"Faleris",type:"fire",power:770,emoji:"🦅"},
+  {id:78,name:"Prunella",type:"dark",power:780,emoji:"🌸"},
+  {id:79,name:"Ragnahawk",type:"fire",power:790,emoji:"🦅"},
+  {id:80,name:"Hangyu Cryst",type:"ice",power:800,emoji:"❄️"},
+  {id:81,name:"Bushi",type:"fire",power:810,emoji:"⚔️"},
+  {id:82,name:"Beakon",type:"electric",power:820,emoji:"🦅"},
+  {id:83,name:"Broncherry Aqua",type:"water",power:830,emoji:"🦛"},
+  {id:84,name:"Relaxaurus Lux",type:"electric",power:840,emoji:"🦖"},
+  {id:85,name:"Gobfin Ignis",type:"fire",power:850,emoji:"🐟"},
+  {id:86,name:"Suzaku",type:"fire",power:860,emoji:"🦚"},
+  {id:87,name:"Suzaku Aqua",type:"water",power:870,emoji:"🦚"},
+  {id:88,name:"Grizzbolt",type:"electric",power:880,emoji:"🐻"},
+  {id:89,name:"Lyleen",type:"grass",power:890,emoji:"🌿"},
+  {id:90,name:"Lyleen Noct",type:"dark",power:900,emoji:"🌿"},
+  {id:91,name:"Frostallion",type:"ice",power:910,emoji:"🐴"},
+  {id:92,name:"Frostallion Noct",type:"dark",power:920,emoji:"🐴"},
+  {id:93,name:"Jetragon",type:"dragon",power:930,emoji:"🐉"},
+  {id:94,name:"Paladius",type:"neutral",power:940,emoji:"🦁"},
+  {id:95,name:"Necromus",type:"dark",power:950,emoji:"💀"},
+  {id:96,name:"Jormuntide",type:"dragon",power:960,emoji:"🐉"},
+  {id:97,name:"Jormuntide Ignis",type:"fire",power:970,emoji:"🐉"},
+  {id:98,name:"Shadowbeak",type:"dark",power:980,emoji:"🦅"},
+  {id:99,name:"Astegon",type:"dragon",power:990,emoji:"🐉"},
+  {id:100,name:"Orserk",type:"dragon",power:1000,emoji:"⚡"},
+  {id:101,name:"Anubis",type:"ground",power:1010,emoji:"🐺"},
+  {id:102,name:"Chikipi Lux",type:"electric",power:1020,emoji:"🐤"},
+  {id:103,name:"Jolthog Cryst",type:"ice",power:1030,emoji:"🦔"},
+  {id:104,name:"Incineram Noct",type:"dark",power:1040,emoji:"🔥"},
+  {id:105,name:"Mossanda",type:"grass",power:1050,emoji:"🐼"},
+  {id:106,name:"Mossanda Lux",type:"electric",power:1060,emoji:"🐼"},
+  {id:107,name:"Dumud",type:"ground",power:1070,emoji:"🐊"},
+  {id:108,name:"Flambelle",type:"fire",power:1080,emoji:"🦋"},
+  {id:109,name:"Vanwyrm",type:"fire",power:1090,emoji:"🦅"},
+  {id:110,name:"Vanwyrm Cryst",type:"ice",power:1100,emoji:"🦅"},
+  {id:111,name:"Helzephyr",type:"dark",power:1110,emoji:"🐉"},
+  {id:112,name:"Menasting",type:"dark",power:1120,emoji:"🦂"},
+  {id:113,name:"Croajiro",type:"water",power:1130,emoji:"🐸"},
+  {id:114,name:"Cawgnito",type:"dark",power:1140,emoji:"🐦"},
+  {id:115,name:"Lillet",type:"grass",power:1150,emoji:"🌱"},
+  {id:116,name:"Leezpunk",type:"dark",power:1160,emoji:"🦊"},
+  {id:117,name:"Leezpunk Ignis",type:"fire",power:1170,emoji:"🦊"},
+  {id:118,name:"Loupmoon",type:"dark",power:1180,emoji:"🐺"},
+  {id:119,name:"Galeclaw",type:"neutral",power:1190,emoji:"🦅"},
+  {id:120,name:"Robinquill",type:"grass",power:1200,emoji:"🐦"},
+  {id:121,name:"Robinquill Terra",type:"ground",power:1210,emoji:"🐦"},
+  {id:122,name:"Gorirat",type:"neutral",power:1220,emoji:"🦍"},
+  {id:123,name:"Beegarde",type:"grass",power:1230,emoji:"🐝"},
+  {id:124,name:"Elizabee",type:"grass",power:1240,emoji:"🐝"},
+  {id:125,name:"Grintale",type:"neutral",power:1250,emoji:"🐱"},
+  {id:126,name:"Yakumo",type:"neutral",power:1260,emoji:"🐇"},
+  {id:127,name:"Mammorest Cryst",type:"ice",power:1270,emoji:"🦣"},
+  {id:128,name:"Wumpo Botan",type:"grass",power:1280,emoji:"❄️"},
+  {id:129,name:"Verdash",type:"grass",power:1290,emoji:"🐇"},
+  {id:130,name:"Felbat",type:"dark",power:1300,emoji:"🦇"},
+  {id:131,name:"Shadowbeak",type:"dark",power:1310,emoji:"🦅"},
+  {id:132,name:"Kitsun",type:"fire",power:1320,emoji:"🦊"},
+  {id:133,name:"Orserk",type:"dragon",power:1330,emoji:"⚡"},
+  {id:134,name:"Paladin",type:"neutral",power:1340,emoji:"⚔️"},
+  {id:135,name:"Necromus X",type:"dark",power:1350,emoji:"💀"},
+  {id:136,name:"Jetragon X",type:"dragon",power:1360,emoji:"🐉"},
+  {id:137,name:"Frostallion X",type:"ice",power:1370,emoji:"🐴"},
+];
+
+// ════════ PASSIVE SKILLS DATA ════════
+const SKILLS=[
+  {id:1,name:"Legend",tier:"S",desc:"+20% ATK, DEF, Speed. Legendary Pals only.",chance:3},
+  {id:2,name:"Swift",tier:"S",desc:"+30% Movement Speed.",chance:5},
+  {id:3,name:"Ferocious",tier:"S",desc:"+20% Attack. Rare drop.",chance:4},
+  {id:4,name:"Musclehead",tier:"A",desc:"+30% ATK, -50% Work Speed.",chance:8},
+  {id:5,name:"Work Slave",tier:"A",desc:"+30% Work Speed, -30% ATK.",chance:8},
+  {id:6,name:"Serious",tier:"A",desc:"+10% all stats.",chance:10},
+  {id:7,name:"Lucky",tier:"A",desc:"+15% ATK, +15% Work Speed.",chance:7},
+  {id:8,name:"Artisan",tier:"A",desc:"+50% Work Speed.",chance:6},
+  {id:9,name:"Runner",tier:"B",desc:"+20% Movement Speed.",chance:12},
+  {id:10,name:"Nimble",tier:"B",desc:"+10% Movement Speed.",chance:15},
+  {id:11,name:"Brave",tier:"B",desc:"+10% ATK.",chance:14},
+  {id:12,name:"Positive Thinker",tier:"B",desc:"Max HP +10%.",chance:13},
+  {id:13,name:"Zen Mind",tier:"B",desc:"Max HP +20%.",chance:10},
+  {id:14,name:"Burly Body",tier:"B",desc:"+10% Defense.",chance:14},
+  {id:15,name:"Durable",tier:"B",desc:"+10% Max HP.",chance:14},
+  {id:16,name:"Masochist",tier:"C",desc:"+15% DEF, receives more damage.",chance:18},
+  {id:17,name:"Coward",tier:"C",desc:"-10% ATK, +10% SPD.",chance:18},
+  {id:18,name:"Botanist",tier:"C",desc:"Plants grow faster nearby.",chance:16},
+];
+
+// ════════ STATE ════════
+let sel={p1:null,p2:null,tg:null,ch:null};
+let selectedSkills=new Set();
+let typeFilter='';
+
+// ════════ BREEDING FORMULA ════════
+function breed(a,b){
+  const avg=Math.floor((a.power+b.power)/2);
+  return PALS.reduce((best,p)=>Math.abs(p.power-avg)<Math.abs(best.power-avg)?p:best);
+}
+
+function findCombos(target){
+  const res=[];
+  for(let i=0;i<PALS.length;i++)
+    for(let j=i;j<PALS.length;j++)
+      if(breed(PALS[i],PALS[j]).id===target.id)
+        res.push([PALS[i],PALS[j]]);
+  return res.slice(0,30);
+}
+
+// Simple chain: find 3-step path using progressively closer pals
+function buildChain(target){
+  const common=[PALS[0],PALS[2],PALS[5],PALS[9],PALS[19],PALS[25]];
+  const steps=[];
+  let current=common[0];
+  const midPower=Math.floor((current.power+target.power)/2);
+  const mid=PALS.reduce((b,p)=>Math.abs(p.power-midPower)<Math.abs(b.power-midPower)?p:b);
+  steps.push({a:common[0],b:common[2],result:mid});
+  // Step 2: mid + common → closer
+  const mid2Power=Math.floor((mid.power+target.power)/2);
+  const mid2=PALS.reduce((b,p)=>Math.abs(p.power-mid2Power)<Math.abs(b.power-mid2Power)?p:b);
+  steps.push({a:mid,b:common[4],result:mid2});
+  // Step 3: final
+  const final=breed(mid2,target);
+  steps.push({a:mid2,b:target,result:final});
+  return steps;
+}
+
+// ════════ DROPDOWN ════════
+function filterDrop(slot){
+  const inputId={p1:'p1i',p2:'p2i',tg:'tgi',ch:'chi'}[slot];
+  const dropId={p1:'p1d',p2:'p2d',tg:'tgd',ch:'chd'}[slot];
+  const q=document.getElementById(inputId).value.toLowerCase();
+  const drop=document.getElementById(dropId);
+  const matches=PALS.filter(p=>p.name.toLowerCase().includes(q));
+  drop.innerHTML=matches.slice(0,10).map(p=>
+    `<div class="dopt" onclick="selectPal('${slot}',${p.id})">
+      <span>${p.emoji}</span><span style="flex:1">${p.name}</span>
+      <span class="tb t-${p.type}">${p.type}</span>
+    </div>`
+  ).join('')||`<div class="dopt" style="color:var(--muted)">No results</div>`;
+  drop.classList.add('open');
+}
+
+function openDrop(slot){filterDrop(slot)}
+
+function selectPal(slot,id){
+  const pal=PALS.find(p=>p.id===id);
+  sel[slot]=pal;
+  const ids={p1:{n:'p1n',s:'p1s',i:'p1i'},p2:{n:'p2n',s:'p2s',i:'p2i'},tg:{n:'tgn',s:'tgs',i:'tgi'},ch:{n:'chn',s:'chs',i:'chi'}};
+  const {n,s,i}=ids[slot];
+  document.getElementById(n).textContent=`${pal.emoji} ${pal.name}`;
+  document.getElementById(s).classList.add('show');
+  document.getElementById(i).value='';
+  document.getElementById({p1:'p1d',p2:'p2d',tg:'tgd',ch:'chd'}[slot]).classList.remove('open');
+}
+
+function clearSel(slot){
+  sel[slot]=null;
+  document.getElementById({p1:'p1s',p2:'p2s',tg:'tgs',ch:'chs'}[slot]).classList.remove('show');
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sw'))
+    document.querySelectorAll('.drop').forEach(d=>d.classList.remove('open'));
+});
+
+// ════════ TABS ════════
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>
+    b.classList.toggle('active',['forward','reverse','chain','skills','list'][i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='list')renderPalList('');
+  if(t==='skills')renderSkills();
+}
+
+// ════════ CALC OFFSPRING ════════
+function calcOffspring(){
+  const res=document.getElementById('fwd-res');
+  if(!sel.p1||!sel.p2){
+    res.innerHTML=`<div class="no-res"><div class="no-res-icon">⚠️</div>Please select both parent Pals!</div>`;
+    res.classList.add('show');return;
+  }
+  const off=breed(sel.p1,sel.p2);
+  const avg=Math.floor((sel.p1.power+sel.p2.power)/2);
+  res.innerHTML=`
+    <div class="res-lbl">🥚 Breeding Result</div>
+    <div class="offspring-card">
+      <div class="off-emoji">${off.emoji}</div>
+      <div>
+        <div class="off-name">${off.name}</div>
+        <div class="off-sub">${sel.p1.emoji} ${sel.p1.name} × ${sel.p2.emoji} ${sel.p2.name}</div>
+        <div class="off-stats">
+          <span class="tb t-${off.type}">${off.type.toUpperCase()}</span>
+          <span class="stat-b">Breeding Power: ${off.power}</span>
+          <span class="stat-b">Avg: ${avg}</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px 14px;background:rgba(118,255,3,0.05);border:1px solid rgba(118,255,3,0.15);border-radius:9px;font-size:13px;color:var(--muted2)">
+      💡 <strong style="color:var(--accent3)">Tip:</strong> Use the <strong>Passive Skills</strong> tab to see which traits can be passed down!
+    </div>
+  `;
+  res.classList.add('show');
+}
+
+// ════════ FIND PARENTS ════════
+function findParents(){
+  const res=document.getElementById('rev-res');
+  if(!sel.tg){
+    res.innerHTML=`<div class="no-res"><div class="no-res-icon">⚠️</div>Please select a target Pal!</div>`;
+    res.classList.add('show');return;
+  }
+  res.innerHTML=`<div class="no-res"><div class="no-res-icon">⏳</div>Searching all combinations...</div>`;
+  res.classList.add('show');
+  setTimeout(()=>{
+    const combos=findCombos(sel.tg);
+    if(!combos.length){
+      res.innerHTML=`<div class="no-res"><div class="no-res-icon">❌</div>No combinations found for <strong>${sel.tg.name}</strong></div>`;return;
+    }
+    res.innerHTML=`
+      <div class="res-lbl">🧬 ${combos.length} Parent Combination${combos.length>1?'s':''} for ${sel.tg.emoji} ${sel.tg.name}</div>
+      <div class="combo-grid">
+        ${combos.map(([a,b])=>`
+          <div class="combo-c">
+            <span style="font-size:18px">${a.emoji}</span>
+            <div class="combo-n">${a.name}</div>
+            <span style="color:var(--accent2);font-size:16px">+</span>
+            <div class="combo-n" style="text-align:right">${b.name}</div>
+            <span style="font-size:18px">${b.emoji}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },300);
+}
+
+// ════════ BREEDING CHAIN ════════
+function calcChain(){
+  const res=document.getElementById('chain-res');
+  if(!sel.ch){
+    res.innerHTML=`<div class="no-res"><div class="no-res-icon">⚠️</div>Please select a target Pal!</div>`;
+    res.classList.add('show');return;
+  }
+  const steps=buildChain(sel.ch);
+  res.innerHTML=`
+    <div class="res-lbl">⛓️ Breeding Chain for ${sel.ch.emoji} ${sel.ch.name}</div>
+    <div class="chain-wrap">
+      ${steps.map((s,i)=>`
+        <div class="chain-step">
+          <div class="step-num">${i+1}</div>
+          <div class="step-pals">${s.a.emoji} ${s.a.name} <span style="color:var(--muted)">×</span> ${s.b.emoji} ${s.b.name}</div>
+          <div class="chain-arrow">→</div>
+          <div class="step-result">${s.result.emoji} ${s.result.name}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:8px;font-size:13px;color:var(--muted2)">
+      💡 Chain breeding lets you reach rare Pals by breeding intermediate offspring step by step.
+    </div>
+  `;
+  res.classList.add('show');
+}
+
+// ════════ PASSIVE SKILLS ════════
+function renderSkills(){
+  document.getElementById('skills-grid').innerHTML=SKILLS.map(s=>`
+    <div class="skill-card ${selectedSkills.has(s.id)?'selected':''}" onclick="toggleSkill(${s.id})">
+      <div class="skill-name">${s.name}</div>
+      <div class="skill-tier tier-${s.tier.toLowerCase()}">TIER ${s.tier}</div>
+      <div class="skill-desc">${s.desc}</div>
+    </div>
+  `).join('');
+}
+
+function toggleSkill(id){
+  if(selectedSkills.has(id))selectedSkills.delete(id);
+  else if(selectedSkills.size<4)selectedSkills.add(id);
+  renderSkills();
+}
+
+function calcSkills(){
+  const res=document.getElementById('skill-res');
+  if(!selectedSkills.size){
+    res.innerHTML=`<div class="no-res"><div class="no-res-icon">⚠️</div>Select at least 1 skill above!</div>`;
+    res.classList.add('show');return;
+  }
+  const chosen=[...selectedSkills].map(id=>SKILLS.find(s=>s.id===id));
+  const avgChance=chosen.reduce((a,s)=>a+s.chance,0)/chosen.length;
+  const multiChance=(chosen.reduce((a,s)=>a*(s.chance/100),1)*100).toFixed(2);
+  res.innerHTML=`
+    <div class="skill-inherit-res">
+      <div class="res-lbl" style="margin-bottom:12px">✨ Inheritance Analysis</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px">
+        <div class="stat-box"><div class="stat-val">${chosen.length}</div><div class="stat-lbl">Skills Selected</div></div>
+        <div class="stat-box"><div class="stat-val">${avgChance.toFixed(0)}%</div><div class="stat-lbl">Avg Per Skill</div></div>
+        <div class="stat-box"><div class="stat-val">${multiChance}%</div><div class="stat-lbl">All Together</div></div>
+      </div>
+      ${chosen.map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1"><strong>${s.name}</strong> <span class="tier-${s.tier.toLowerCase()}">Tier ${s.tier}</span></div>
+          <div style="color:var(--accent);font-weight:700">${s.chance}% chance</div>
+        </div>
+      `).join('')}
+      <div style="margin-top:14px;font-size:13px;color:var(--muted2)">
+        💡 <strong>Strategy:</strong> ${chosen.some(s=>s.tier==='S')?'S-tier skills are rare — breed parents that both carry the skill to increase odds.':'Keep breeding until desired traits appear. Use Lucky Pals to improve skill transfer rate.'}
+      </div>
+    </div>
+  `;
+  res.classList.add('show');
+}
+
+// ════════ PAL LIST ════════
+function renderPalList(q=''){
+  const grid=document.getElementById('pal-list-grid');
+  const filtered=PALS.filter(p=>
+    p.name.toLowerCase().includes(q.toLowerCase())&&
+    (typeFilter===''||p.type===typeFilter)
+  );
+  grid.innerHTML=filtered.map(p=>`
+    <div class="pal-item">
+      <span class="pal-e">${p.emoji}</span>
+      <div style="flex:1">
+        <div class="pal-n">${p.name}</div>
+        <div class="pal-p">Power: ${p.power}</div>
+      </div>
+      <span class="tb t-${p.type}">${p.type}</span>
+    </div>
+  `).join('');
+}
+
+function filterType(t){
+  typeFilter=t;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+  renderPalList(document.querySelector('#panel-list .si').value||'');
+}
+</script>
+</body>
+</html>
